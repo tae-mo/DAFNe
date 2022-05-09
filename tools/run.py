@@ -204,7 +204,7 @@ def get_docker_volumes():
     data_dir = ARGS.data_dir
     assert os.path.isdir(data_dir), f"Argument --data-dir ({ARGS.data_dir}) is not a valid directory."
     models_dir = joinpath(home_dir, "models")
-    results_dir = get_results_dir()
+    results_dir = get_results_dir(pwd)
     model_cache_dir = get_main_model_cache_dir()
 
     # Define volumes
@@ -215,7 +215,7 @@ def get_docker_volumes():
         # Mount project code
         f"{pwd}": "/app/dafne:z",
         # Mount dataset, results and saved models
-        f"{data_dir}": "/app/data/dota_1_split:z",
+        f"{data_dir}": f"/app/data/{data_dir.split('/')[-1]}:z",
         f"{models_dir}": "/app/models/:z",
         f"{results_dir}": "/app/results/:z",
         f"{model_cache_dir}": "/app/.torch/detectron2:z",
@@ -400,9 +400,9 @@ def run_train_resume():
     cmd(run_command, interactive=True)
 
 
-def get_results_dir():
-    home_dir = os.environ["HOME"]
-    results_dir = joinpath(home_dir, "results")
+def get_results_dir(working_dir):
+    #home_dir = os.environ["HOME"]
+    results_dir = joinpath(working_dir, "results")
     mkdir(results_dir)
     return results_dir
 
