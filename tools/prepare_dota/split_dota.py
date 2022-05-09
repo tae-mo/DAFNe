@@ -4,6 +4,7 @@ import utils as util
 import os
 import ImgSplit_multi_process
 import SplitOnlyImage_multi_process
+import SplitOnlyImage
 import shutil
 from multiprocessing import Pool
 from DOTA2COCO import DOTA2COCOTest, DOTA2COCOTrain
@@ -85,7 +86,6 @@ def prepare(srcpath, dstpath, patchsize, overlap):
           train --> trainval1024, val --> trainval1024, test --> test1024
     :return:
     """
-
     if not os.path.exists(os.path.join(dstpath, f"test{patchsize}")):
         os.mkdir(os.path.join(dstpath, f"test{patchsize}"))
     if not os.path.exists(os.path.join(dstpath, f"train{patchsize}")):

@@ -33,6 +33,7 @@ class splitbase():
         subimg = copy.deepcopy(img[up: (up + self.subsize), left: (left + self.subsize)])
         outdir = os.path.join(self.dstpath, subimgname + ext)
         h, w, c = np.shape(subimg)
+
         if (self.padding):
             outimg = np.zeros((self.subsize, self.subsize, 3))
             outimg[0:h, 0:w, :] = subimg
@@ -42,6 +43,7 @@ class splitbase():
 
     def SplitSingle(self, name, rate, extent):
         img = cv2.imread(os.path.join(self.srcpath, name + extent))
+        print(os.path.join(self.srcpath, name + extent))
         assert np.shape(img) != ()
 
         if (rate != 1):
@@ -76,12 +78,10 @@ class splitbase():
                 left = left + self.slide
 
     def splitdata(self, rate):
-
-        imagelist = util.GetFileFromThisRootDir(self.srcpath)
+        imagelist = sorted(util.GetFileFromThisRootDir(self.srcpath))
         imagenames = [util.custombasename(x) for x in imagelist if (util.custombasename(x) != 'Thumbs')]
 
         worker = partial(self.SplitSingle, rate=rate, extent=self.ext)
-
         self.pool.map(worker, imagenames)
         #
         # for name in imagenames:

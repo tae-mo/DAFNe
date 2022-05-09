@@ -192,6 +192,7 @@ def get_docker_gpu_flag():
 def get_main_model_cache_dir():
     home_dir = os.environ["HOME"]
     path = f"{home_dir}/.torch/detectron2"
+    #path = "/home/taejune/.conda/envs/dafne/lib/python3.8/site-packages/detectron2"
     mkdir(path)
     return path
 
@@ -214,7 +215,7 @@ def get_docker_volumes():
         # Mount project code
         f"{pwd}": "/app/dafne:z",
         # Mount dataset, results and saved models
-        f"{data_dir}": "/app/data/:z",
+        f"{data_dir}": "/app/data/dota_1_split:z",
         f"{models_dir}": "/app/models/:z",
         f"{results_dir}": "/app/results/:z",
         f"{model_cache_dir}": "/app/.torch/detectron2:z",
@@ -291,7 +292,12 @@ def get_docker_options():
 def get_additional_opts():
     # Arguments passed via the command line
     opts = ARGS.opts
-
+    
+    if "MODEL.WEIGHTS" in opts:
+        key, weight_path = opts.split()
+        weight = get_model_weights(weight_path)
+        opts = key + " " + weight
+        
     if not (abs(ARGS.iter_scale - 1.0) < 1e-4):
         s = ARGS.iter_scale
         if "SOLVER.MAX_ITER" not in opts:
@@ -362,6 +368,13 @@ def get_config_file():
             return ARGS.config_file
 
     return ARGS.config_file
+
+def get_model_weights(weight_path):
+    path = weight_path.split("/")[-1]
+    rel = get_relative_output_dir()
+    
+    print(joinpath(rel, path))
+    return joinpath(rel, path)
 
 
 def run_train_resume():

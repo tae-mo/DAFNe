@@ -26,6 +26,8 @@ class splitbase():
 
     def SplitSingle(self, name, rate, extent):
         img = cv2.imread(os.path.join(self.srcpath, name + extent), cv2.IMREAD_UNCHANGED)
+        print(os.path.join(self.srcpath, name + extent))
+        
         assert np.shape(img) != ()
 
         if (rate != 1):
@@ -58,7 +60,7 @@ class splitbase():
 
     def splitdata(self, rate):
         
-        imagelist = util.GetFileFromThisRootDir(self.srcpath)
+        imagelist = sorted(util.GetFileFromThisRootDir(self.srcpath))
         imagenames = [util.custombasename(x) for x in imagelist if (util.custombasename(x) != 'Thumbs')]
         for name in imagenames:
             self.SplitSingle(name, rate, self.ext)

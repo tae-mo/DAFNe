@@ -137,13 +137,13 @@ class DAFNeOutputs(nn.Module):
         beta = cfg.MODEL.DAFNE.LOSS_SMOOTH_L1_BETA
 
         if cfg.MODEL.DAFNE.ENABLE_LOSS_MODULATION:
-            self.corners_loss_func = ModulatedEightPointLoss(
+            self.corners_loss_func = ModulatedEightPointLoss( # with clockwise shift
                 beta=beta,
                 reduction="sum",
                 logspace=logspace,
             )
         else:
-            self.corners_loss_func = SmoothL1Loss(
+            self.corners_loss_func = SmoothL1Loss( # w/o clockwise shift
                 beta=beta,
                 reduction="sum",
                 logspace=logspace,
@@ -189,7 +189,7 @@ class DAFNeOutputs(nn.Module):
         soi.append([prev_size, INF])
         self.sizes_of_interest = soi
 
-    def normalize_lambdas(self):
+    def normalize_lambdas(self): # why don't they add self.lambda_ltrb ?
         # Make them sum up to one
         lambda_sum = self.lambda_cls + self.lambda_corners
         if self.has_centerness:
@@ -197,7 +197,6 @@ class DAFNeOutputs(nn.Module):
 
         if self.has_center_reg:
             lambda_sum += self.lambda_center
-
 
         self.lambda_cls = self.lambda_cls / lambda_sum
         self.lambda_ctr = self.lambda_ctr / lambda_sum
@@ -258,9 +257,9 @@ class DAFNeOutputs(nn.Module):
             loc_to_size_range_per_level = loc_per_level.new_tensor(self.sizes_of_interest[l])
             loc_to_size_range.append(loc_to_size_range_per_level[None].expand(num_loc_list[l], -1))
 
-        loc_to_size_range = torch.cat(loc_to_size_range, dim=0)
+        loc_to_size_range = torch.cat(loc_to_size_range, dim=0) # [-1, 64]...[64, 128]...[128, 256]....
         locations = torch.cat(locations, dim=0)
-
+        
         training_targets = self.compute_targets_for_locations(
             locations, gt_instances, loc_to_size_range, num_loc_list
         )
@@ -364,6 +363,7 @@ class DAFNeOutputs(nn.Module):
         num_targets = 0
         for im_i in range(len(targets)):
             targets_per_im = targets[im_i]
+            
             bboxes = targets_per_im.gt_boxes.tensor
             num_gts = bboxes.shape[0]
             corners = targets_per_im.gt_corners
@@ -382,12 +382,13 @@ class DAFNeOutputs(nn.Module):
 
             xs_ext = xs[:, None]
             ys_ext = ys[:, None]
-
+            
             # Generate ltrb values
             l = xs_ext - bboxes[:, 0][None]
             t = ys_ext - bboxes[:, 1][None]
             r = bboxes[:, 2][None] - xs_ext
             b = bboxes[:, 3][None] - ys_ext
+            
             reg_targets_ltrb_per_im = torch.stack([l, t, r, b], dim=2)
 
             reg_targets_abcd_per_im = compute_abcd(corners, xs_ext, ys_ext)
@@ -568,7 +569,7 @@ class DAFNeOutputs(nn.Module):
             ],
             dim=0,
         )
-
+        
         instances.locations = cat([x.reshape(-1, 2) for x in training_targets["locations"]], dim=0)
         instances.fpn_levels = cat([x.reshape(-1) for x in training_targets["fpn_levels"]], dim=0)
 
@@ -663,6 +664,7 @@ class DAFNeOutputs(nn.Module):
 
         ctrness_targets_sum = ctrness_targets.sum()
         loss_denorm = max(reduce_sum(ctrness_targets_sum).item() / num_gpus, 1e-6)
+        
         instances.gt_ctrs = ctrness_targets
 
         if pos_inds.numel() > 0:

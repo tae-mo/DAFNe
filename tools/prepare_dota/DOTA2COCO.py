@@ -12,7 +12,6 @@ wordname_16 = ['plane', 'baseball-diamond', 'bridge', 'ground-track-field', 'sma
 
 def DOTA2COCOTrain(srcpath, destfile, cls_names, difficult='2'):
     # set difficult to filter '2', '1', or do not filter, set '-1'
-
     imageparent = os.path.join(srcpath, 'images')
     labelparent = os.path.join(srcpath, 'labelTxt')
 

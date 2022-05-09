@@ -37,9 +37,12 @@ class Mish(nn.Module):
 def compute_locations(h, w, stride, device):
     shifts_x = torch.arange(0, w * stride, step=stride, dtype=torch.float32, device=device)
     shifts_y = torch.arange(0, h * stride, step=stride, dtype=torch.float32, device=device)
+
     shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)
+
     shift_x = shift_x.reshape(-1)
     shift_y = shift_y.reshape(-1)
+
     locations = torch.stack((shift_x, shift_y), dim=1) + stride // 2
     return locations
 
@@ -181,7 +184,7 @@ class DAFNeHead(nn.Module):
         self.use_centerness = centerness_mode != "none"
         self.merge_corner_center_pred = cfg.MODEL.DAFNE.MERGE_CORNER_CENTER_PRED
 
-        self.corner_prediction_strategy = cfg.MODEL.DAFNE.CORNER_PREDICTION
+        self.corner_prediction_strategy = cfg.MODEL.DAFNE.CORNER_PREDICTION # center-to-corner
         self.corner_tower_on_center_tower = cfg.MODEL.DAFNE.CORNER_TOWER_ON_CENTER_TOWER
         assert self.corner_prediction_strategy in [
             "direct",
@@ -265,7 +268,6 @@ class DAFNeHead(nn.Module):
                 self.cls_logits,
             ]
         )
-
         # Initialize modules
         for modules in modules_init_list:
             for l in modules.modules():
@@ -360,7 +362,6 @@ class DAFNeHead(nn.Module):
 
         # For each feature level
         for level, feature in enumerate(x):
-
             # Apply sharing tower if set, else no-op
             feature = self.share_tower(feature)
 
@@ -386,25 +387,24 @@ class DAFNeHead(nn.Module):
                 if self.cfg.MODEL.DAFNE.USE_SCALE:
                     reg_corners = self.scales[level](reg_corners)
             elif self.corner_prediction_strategy == "center-to-corner":
-
                 if self.merge_corner_center_pred:
                     corners_tower = self.corners_tower(feature)
 
                     # center-to-corner vectors
-                    reg_corners_delta = self.corners_pred(corners_tower)
-                    reg_center = self.center_pred(corners_tower)
+                    reg_corners_delta = self.corners_pred(corners_tower) # predict corner with corners
+                    reg_center = self.center_pred(corners_tower) # predict center with "corners"
                     reg_corners = reg_center.repeat(1, 4, 1, 1) + reg_corners_delta
                 else:
                     center_tower = self.center_tower(feature)
 
                     if self.corner_tower_on_center_tower:
-                        corners_tower = self.corners_tower(center_tower)
+                        corners_tower = self.corners_tower(center_tower) # uses center feature to extract corner feature
                     else:
-                        corners_tower = self.corners_tower(feature)
+                        corners_tower = self.corners_tower(feature) # just uses FPN feature to extract corner feature
 
-                    reg_center = self.center_pred(center_tower)
-                    reg_corners_delta = self.corners_pred(corners_tower)
-                    reg_corners = reg_center.repeat(1, 4, 1, 1) + reg_corners_delta
+                    reg_center = self.center_pred(center_tower) # predict center with center
+                    reg_corners_delta = self.corners_pred(corners_tower) # predict corners with center
+                    reg_corners = reg_center.repeat(1, 4, 1, 1) + reg_corners_delta # broadcasting
 
                 if self.cfg.MODEL.DAFNE.USE_SCALE:
                     reg_corners = self.scales[level](reg_corners)
@@ -465,9 +465,9 @@ class DAFNeHead(nn.Module):
             # Predict centerness if enabled
             if self.use_centerness:
                 if self.cfg.MODEL.DAFNE.CTR_ON_REG:
-                    reg_ctrness = self.ctrness(corners_tower)
+                    reg_ctrness = self.ctrness(corners_tower) # centerness on corners features
                 else:
-                    reg_ctrness = self.ctrness(cls_tower)
+                    reg_ctrness = self.ctrness(cls_tower) # centerness on cls features
                 ctrness.append(reg_ctrness)
             else:
                 reg_ctrness = torch.ones(

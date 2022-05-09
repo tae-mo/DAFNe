@@ -69,7 +69,6 @@ class ModulatedEightPointLoss(nn.Module):
     def forward(self, input, target, weight=None):
 
         # Convert xywha to corner representation and sort them canonically
-
         num_pos = input.shape[0]
 
         # Loss without shift
