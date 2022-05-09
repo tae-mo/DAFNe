@@ -4,3 +4,12 @@ setproctitle==1.1.10
 adabelief-pytorch==0.0.5
 iopath==0.1.9
 beautifulsoup4==4.10.0
+PyYAML
+requests<3
+scikit-learn>=0.15
+albumentations
+opencv-python>=3.4.5
+pathtools
+psutil>=5.0.0
+filelock
+Click
