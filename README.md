@@ -67,23 +67,3 @@ Use the `./tools/run.py` helper to start running experiments
 | HRSC2016 | 89.76   | [hrsc_r50_ms](./configs/pre-trained/hrsc_r50_ms.yaml)           | [hrsc-r50-ms.pth](https://drive.google.com/file/d/10i3pHxiHgjJGzJoZK-HtNdsAyfGD5Ydj/view?usp=sharing)      |
 | DOTA 1.0 | 76.95   | [dota-1.0_r101_ms](./configs/pre-trained/dota-1.0_r101_ms.yaml) | [dota-1.0-r101-ms.pth](https://drive.google.com/file/d/1-lgSLhKQSZBogI2YD0r64wjJV6k2xL4E/view?usp=sharing) |
 | DOTA 1.5 | 71.99   | [dota-1.5_r101_ms](./configs/pre-trained/dota-1.5_r101_ms.yaml) | [dota-1.5-r101-ms.pth](https://drive.google.com/file/d/1MQbTngieoWh-DcJL-z55RnI3PUNeSvBv/view?usp=sharing) |
-
-
-## Cite
-
-``` bibtex
-@misc{lang2021dafne,
-      title={DAFNe: A One-Stage Anchor-Free Approach for Oriented Object Detection}, 
-      author={Steven Lang and Fabrizio Ventola and Kristian Kersting},
-      year={2021},
-      eprint={2109.06148},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
-
-
-## Acknowledgments
-
-- Thanks to [AdelaiDet](https://github.com/aim-uofa/AdelaiDet) for providing the initial FCOS implementation
-- Thanks to [Detectron2](https://github.com/facebookresearch/detectron2) for providing a general object detection framework
